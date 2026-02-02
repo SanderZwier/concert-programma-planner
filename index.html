@@ -157,9 +157,300 @@
             margin: 0 auto;
         }
 
+        /* Tablet */
         @media (max-width: 900px) {
             .container {
                 grid-template-columns: 1fr;
+            }
+        }
+
+        /* Mobile */
+        @media (max-width: 600px) {
+            header {
+                padding: 1rem;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.75rem;
+            }
+
+            header h1 {
+                font-size: 1.2rem;
+                text-align: center;
+            }
+
+            .header-right {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0.5rem;
+            }
+
+            .total-duration {
+                padding: 0.4rem 1rem;
+                font-size: 0.85rem;
+                order: -1;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .total-duration span {
+                font-size: 1.1rem;
+            }
+
+            .collab-btn {
+                padding: 0.5rem 0.9rem;
+                font-size: 0.8rem;
+            }
+
+            .collab-btn svg {
+                width: 14px;
+                height: 14px;
+            }
+
+            .collab-status {
+                font-size: 0.7rem;
+            }
+
+            .container {
+                padding: 1rem;
+                gap: 1rem;
+            }
+
+            .panel {
+                padding: 1rem;
+                border-radius: var(--radius-md);
+            }
+
+            .panel h2 {
+                font-size: 0.8rem;
+                margin-bottom: 1rem;
+            }
+
+            .form-group {
+                margin-bottom: 0.75rem;
+            }
+
+            .form-group label {
+                font-size: 0.75rem;
+            }
+
+            input, select {
+                padding: 0.65rem 0.85rem;
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+
+            .duration-inputs input {
+                width: 65px;
+                padding: 0.65rem 0.5rem;
+            }
+
+            .duration-inputs span {
+                font-size: 0.8rem;
+            }
+
+            button {
+                padding: 0.65rem 1rem;
+                font-size: 0.85rem;
+            }
+
+            .color-presets {
+                gap: 0.4rem;
+            }
+
+            .color-preset {
+                width: 26px;
+                height: 26px;
+            }
+
+            .performer-list {
+                max-height: 180px;
+            }
+
+            .performer-item {
+                padding: 0.6rem;
+            }
+
+            .performer-color {
+                width: 28px;
+                height: 28px;
+            }
+
+            .performer-name {
+                font-size: 0.85rem;
+            }
+
+            .performer-actions {
+                opacity: 1;
+            }
+
+            .main-content {
+                padding: 1rem;
+                border-radius: var(--radius-md);
+            }
+
+            .main-content h2 {
+                font-size: 0.8rem;
+                margin-bottom: 1rem;
+            }
+
+            .programme-item {
+                padding: 0.75rem;
+                gap: 0.6rem;
+                flex-wrap: wrap;
+            }
+
+            .item-order {
+                font-size: 0.8rem;
+                min-width: 24px;
+            }
+
+            .item-content {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .item-title {
+                font-size: 0.9rem;
+                word-break: break-word;
+            }
+
+            .item-meta {
+                font-size: 0.75rem;
+            }
+
+            .item-duration {
+                font-size: 0.8rem;
+                padding: 0.3rem 0.6rem;
+                min-width: 60px;
+            }
+
+            .item-actions {
+                opacity: 1;
+            }
+
+            .btn-icon {
+                padding: 0.4rem;
+            }
+
+            .btn-icon svg {
+                width: 14px;
+                height: 14px;
+            }
+
+            .empty-state {
+                padding: 2rem 1rem;
+            }
+
+            .empty-state svg {
+                width: 48px;
+                height: 48px;
+            }
+
+            .empty-state p {
+                font-size: 0.85rem;
+            }
+
+            /* Modals on mobile */
+            .modal {
+                padding: 1.25rem;
+                width: 95%;
+                max-height: 85vh;
+                border-radius: var(--radius-md);
+            }
+
+            .modal h3 {
+                font-size: 1.1rem;
+            }
+
+            .modal > p {
+                font-size: 0.85rem;
+            }
+
+            .modal-actions {
+                flex-direction: column-reverse;
+                gap: 0.5rem;
+            }
+
+            .modal-actions button {
+                width: 100%;
+            }
+
+            .session-link {
+                flex-direction: column;
+            }
+
+            .session-link input {
+                font-size: 14px;
+            }
+
+            .session-link button {
+                width: 100%;
+            }
+
+            .export-options {
+                gap: 0.5rem;
+            }
+
+            .export-option {
+                padding: 1rem;
+            }
+
+            .export-option svg {
+                width: 20px;
+                height: 20px;
+            }
+
+            .export-option-title {
+                font-size: 0.9rem;
+            }
+
+            .export-option-desc {
+                font-size: 0.8rem;
+            }
+
+            /* Toast on mobile */
+            .toast {
+                left: 1rem;
+                right: 1rem;
+                bottom: 1rem;
+                text-align: center;
+            }
+        }
+
+        /* Extra small phones */
+        @media (max-width: 380px) {
+            header h1 {
+                font-size: 1.1rem;
+            }
+
+            .collab-btn span:not(.collab-status) {
+                display: none;
+            }
+
+            .collab-btn {
+                padding: 0.5rem;
+            }
+
+            .programme-item {
+                padding: 0.6rem;
+            }
+
+            .item-duration {
+                font-size: 0.75rem;
+                min-width: 55px;
+            }
+        }
+
+        /* iOS safe areas */
+        @supports (padding: max(0px)) {
+            header {
+                padding-left: max(1rem, env(safe-area-inset-left));
+                padding-right: max(1rem, env(safe-area-inset-right));
+            }
+
+            .container {
+                padding-left: max(1rem, env(safe-area-inset-left));
+                padding-right: max(1rem, env(safe-area-inset-right));
+                padding-bottom: max(1rem, env(safe-area-inset-bottom));
             }
         }
 
