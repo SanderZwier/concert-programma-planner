@@ -646,10 +646,10 @@
     </div>
 
     <script>
-        // Configuration - will be set based on environment
-        const WS_URL = window.location.hostname === 'localhost'
-            ? 'ws://localhost:3000'
-            : 'wss://' + window.location.hostname;
+        // Configuration - WebSocket URL based on environment
+        const WS_URL = window.location.protocol === 'https:'
+            ? 'wss://' + window.location.host
+            : 'ws://' + window.location.host;
 
         // Data
         let performers = [];
