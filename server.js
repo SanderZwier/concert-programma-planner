@@ -7,35 +7,58 @@ const PORT = process.env.PORT || 3000;
 
 // HTTP server for serving static files
 const server = http.createServer((req, res) => {
-    let filePath = req.url === '/' ? '/index.html' : req.url;
-    filePath = path.join(__dirname, filePath.split('?')[0]);
+    // Parse URL and remove query string
+    const url = new URL(req.url, `http://localhost:${PORT}`);
+    let pathname = url.pathname;
 
+    // Always serve index.html for root or any path with query params (SPA routing)
+    if (pathname === '/' || pathname === '/index.html') {
+        const indexPath = path.join(__dirname, 'index.html');
+        fs.readFile(indexPath, (err, content) => {
+            if (err) {
+                console.error('Error reading index.html:', err);
+                res.writeHead(500, { 'Content-Type': 'text/plain' });
+                res.end('Server Error: Could not read index.html');
+            } else {
+                res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+                res.end(content, 'utf-8');
+            }
+        });
+        return;
+    }
+
+    // Serve static files
+    const filePath = path.join(__dirname, pathname);
     const ext = path.extname(filePath);
     const contentTypes = {
-        '.html': 'text/html',
-        '.js': 'application/javascript',
-        '.css': 'text/css',
-        '.json': 'application/json',
+        '.html': 'text/html; charset=utf-8',
+        '.js': 'application/javascript; charset=utf-8',
+        '.css': 'text/css; charset=utf-8',
+        '.json': 'application/json; charset=utf-8',
         '.png': 'image/png',
         '.jpg': 'image/jpeg',
-        '.ico': 'image/x-icon'
+        '.ico': 'image/x-icon',
+        '.svg': 'image/svg+xml'
     };
 
     fs.readFile(filePath, (err, content) => {
         if (err) {
             if (err.code === 'ENOENT') {
-                // Serve index.html for all routes (SPA support)
-                fs.readFile(path.join(__dirname, 'index.html'), (err, content) => {
+                // File not found - serve index.html (SPA fallback)
+                const indexPath = path.join(__dirname, 'index.html');
+                fs.readFile(indexPath, (err, content) => {
                     if (err) {
-                        res.writeHead(500);
-                        res.end('Server Error');
+                        console.error('Error reading index.html:', err);
+                        res.writeHead(500, { 'Content-Type': 'text/plain' });
+                        res.end('Server Error: Could not read index.html');
                     } else {
-                        res.writeHead(200, { 'Content-Type': 'text/html' });
+                        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
                         res.end(content, 'utf-8');
                     }
                 });
             } else {
-                res.writeHead(500);
+                console.error('Error reading file:', err);
+                res.writeHead(500, { 'Content-Type': 'text/plain' });
                 res.end('Server Error');
             }
         } else {
