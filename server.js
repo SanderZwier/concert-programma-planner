@@ -147,7 +147,8 @@ wss.on('connection', (ws) => {
                             type: 'update',
                             clientId: clientId,
                             performers: data.performers,
-                            programmeItems: data.programmeItems
+                            programmeItems: data.programmeItems,
+                            concertInfo: data.concertInfo
                         }, clientId);
                     }
                     break;
@@ -158,7 +159,8 @@ wss.on('connection', (ws) => {
                         broadcastToSession(currentSessionId, {
                             type: 'state',
                             performers: data.performers,
-                            programmeItems: data.programmeItems
+                            programmeItems: data.programmeItems,
+                            concertInfo: data.concertInfo
                         }, clientId);
                     }
                     break;
