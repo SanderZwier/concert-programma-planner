@@ -4,7 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Concert Programma Planner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            /* Soft pastel palette */
+            --primary: #7C9CBF;
+            --primary-light: #A8C5E2;
+            --primary-dark: #5A7A9E;
+            --accent: #E8B4B8;
+            --accent-light: #F5D5D8;
+            --background: #FBF9F7;
+            --surface: #FFFFFF;
+            --surface-hover: #F5F3F0;
+            --text-primary: #4A4A4A;
+            --text-secondary: #7A7A7A;
+            --text-muted: #A0A0A0;
+            --border: #E8E4E0;
+            --success: #A8D5BA;
+            --success-dark: #7FB992;
+            --warning: #F5D99A;
+            --danger: #E8A8A8;
+            --danger-dark: #D88888;
+
+            /* Beautiful performer colors - soft and distinctive */
+            --performer-1: #B8D4E3;  /* Soft sky blue */
+            --performer-2: #E8C5D0;  /* Dusty rose */
+            --performer-3: #C5E0D0;  /* Sage green */
+            --performer-4: #E8D5B8;  /* Warm sand */
+            --performer-5: #D0C5E8;  /* Lavender */
+            --performer-6: #E8E0C5;  /* Soft yellow */
+            --performer-7: #C5D8E8;  /* Powder blue */
+            --performer-8: #E8C5C5;  /* Blush pink */
+            --performer-9: #C5E8D8;  /* Mint */
+            --performer-10: #D8C5E8; /* Lilac */
+
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 20px rgba(0,0,0,0.04), 0 4px 8px rgba(0,0,0,0.06);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,16 +54,17 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: #f5f5f5;
-            color: #333;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
             min-height: 100vh;
+            line-height: 1.5;
         }
 
         header {
-            background: #2c3e50;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
-            padding: 1rem 2rem;
+            padding: 1.25rem 2rem;
             position: sticky;
             top: 0;
             z-index: 100;
@@ -30,71 +73,84 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 1rem;
+            box-shadow: var(--shadow-md);
         }
 
         header h1 {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: 600;
+            letter-spacing: -0.02em;
         }
 
         .header-right {
             display: flex;
             align-items: center;
-            gap: 1.5rem;
+            gap: 1rem;
         }
 
         .total-duration {
-            background: #3498db;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            font-size: 1.1rem;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            padding: 0.5rem 1.25rem;
+            border-radius: var(--radius-xl);
+            font-size: 0.95rem;
             font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .total-duration span {
-            font-family: 'Monaco', 'Consolas', monospace;
-            font-size: 1.3rem;
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+            font-size: 1.2rem;
+            font-weight: 600;
         }
 
         .collab-section {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
         }
 
         .collab-btn {
-            background: #27ae60;
-            color: white;
+            background: rgba(255,255,255,0.95);
+            color: var(--primary-dark);
             border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
+            padding: 0.6rem 1.25rem;
+            border-radius: var(--radius-xl);
             cursor: pointer;
             font-size: 0.9rem;
+            font-weight: 500;
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
         }
 
         .collab-btn:hover {
-            background: #219a52;
+            background: white;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
         }
 
         .collab-status {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
+            font-weight: 500;
             opacity: 0.9;
         }
 
         .collab-status.connected {
-            color: #2ecc71;
+            color: #90EE90;
         }
 
         .collab-status.disconnected {
-            color: #e74c3c;
+            color: #FFB4B4;
         }
 
         .container {
             display: grid;
-            grid-template-columns: 320px 1fr;
+            grid-template-columns: 340px 1fr;
             gap: 1.5rem;
             padding: 1.5rem;
             max-width: 1400px;
@@ -110,24 +166,36 @@
         .sidebar {
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 1.25rem;
         }
 
         .panel {
-            background: white;
-            border-radius: 10px;
-            padding: 1.25rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            transition: box-shadow 0.2s ease;
+        }
+
+        .panel:hover {
+            box-shadow: var(--shadow-md);
         }
 
         .panel h2 {
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: 600;
-            margin-bottom: 1rem;
-            color: #2c3e50;
+            margin-bottom: 1.25rem;
+            color: var(--text-primary);
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .panel h2 svg {
+            color: var(--primary);
         }
 
         .form-group {
@@ -136,30 +204,63 @@
 
         .form-group label {
             display: block;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 500;
-            margin-bottom: 0.35rem;
-            color: #555;
+            margin-bottom: 0.4rem;
+            color: var(--text-secondary);
         }
 
         input, select {
             width: 100%;
-            padding: 0.6rem;
-            border: 1px solid #ddd;
-            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
             font-size: 0.9rem;
+            font-family: inherit;
+            background: var(--surface);
+            color: var(--text-primary);
+            transition: all 0.2s ease;
         }
 
         input:focus, select:focus {
             outline: none;
-            border-color: #3498db;
-            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(124, 156, 191, 0.15);
+        }
+
+        input::placeholder {
+            color: var(--text-muted);
         }
 
         input[type="color"] {
-            height: 40px;
-            padding: 4px;
+            height: 48px;
+            padding: 6px;
             cursor: pointer;
+            border-radius: var(--radius-sm);
+        }
+
+        .color-presets {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .color-preset {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .color-preset:hover {
+            transform: scale(1.15);
+        }
+
+        .color-preset.active {
+            border-color: var(--text-primary);
         }
 
         .duration-inputs {
@@ -169,28 +270,37 @@
         }
 
         .duration-inputs input {
-            width: 70px;
+            width: 80px;
             text-align: center;
         }
 
         .duration-inputs span {
-            color: #888;
+            color: var(--text-muted);
             font-size: 0.85rem;
+            font-weight: 500;
         }
 
         button {
-            background: #3498db;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             border: none;
-            padding: 0.6rem 1rem;
-            border-radius: 6px;
+            padding: 0.75rem 1.25rem;
+            border-radius: var(--radius-sm);
             cursor: pointer;
             font-size: 0.9rem;
-            transition: background 0.2s;
+            font-weight: 500;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
         }
 
         button:hover {
-            background: #2980b9;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        button:active {
+            transform: translateY(0);
         }
 
         .btn-full {
@@ -198,27 +308,51 @@
         }
 
         .btn-danger {
-            background: #e74c3c;
-        }
-
-        .btn-danger:hover {
-            background: #c0392b;
+            background: linear-gradient(135deg, var(--danger) 0%, var(--danger-dark) 100%);
         }
 
         .btn-secondary {
-            background: #95a5a6;
+            background: var(--surface);
+            color: var(--text-secondary);
+            border: 1.5px solid var(--border);
+            box-shadow: none;
         }
 
         .btn-secondary:hover {
-            background: #7f8c8d;
+            background: var(--surface-hover);
+            box-shadow: none;
+        }
+
+        .btn-icon {
+            padding: 0.5rem;
+            background: transparent;
+            color: var(--text-muted);
+            box-shadow: none;
+            border-radius: var(--radius-sm);
+        }
+
+        .btn-icon:hover {
+            background: var(--surface-hover);
+            color: var(--text-primary);
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-icon.btn-danger {
+            color: var(--danger-dark);
+        }
+
+        .btn-icon.btn-danger:hover {
+            background: #FEF2F2;
+            color: var(--danger-dark);
         }
 
         .performer-list {
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
-            margin-top: 1rem;
-            max-height: 200px;
+            margin-top: 1.25rem;
+            max-height: 220px;
             overflow-y: auto;
         }
 
@@ -226,51 +360,63 @@
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            padding: 0.5rem;
-            background: #f8f9fa;
-            border-radius: 6px;
+            padding: 0.75rem;
+            background: var(--surface-hover);
+            border-radius: var(--radius-sm);
+            transition: all 0.2s ease;
+        }
+
+        .performer-item:hover {
+            background: var(--border);
         }
 
         .performer-color {
-            width: 24px;
-            height: 24px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             flex-shrink: 0;
+            box-shadow: var(--shadow-sm);
         }
 
         .performer-name {
             flex: 1;
             font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
         }
 
         .performer-actions {
             display: flex;
             gap: 0.25rem;
+            opacity: 0;
+            transition: opacity 0.2s ease;
         }
 
-        .performer-actions button {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.75rem;
+        .performer-item:hover .performer-actions {
+            opacity: 1;
         }
 
         .main-content {
-            background: white;
-            border-radius: 10px;
+            background: var(--surface);
+            border-radius: var(--radius-lg);
             padding: 1.5rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
         }
 
         .main-content h2 {
-            font-size: 1.1rem;
+            font-size: 0.9rem;
             font-weight: 600;
-            margin-bottom: 1rem;
-            color: #2c3e50;
+            margin-bottom: 1.25rem;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .programme-list {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 0.75rem;
             min-height: 200px;
         }
 
@@ -278,12 +424,17 @@
             display: flex;
             align-items: center;
             gap: 1rem;
-            padding: 1rem;
-            border-radius: 8px;
-            border-left: 5px solid;
-            background: #f8f9fa;
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-md);
+            background: var(--surface-hover);
             cursor: grab;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.2s ease;
+            border-left: 4px solid;
+        }
+
+        .programme-item:hover {
+            background: var(--border);
+            transform: translateX(4px);
         }
 
         .programme-item:active {
@@ -293,17 +444,18 @@
         .programme-item.dragging {
             opacity: 0.5;
             transform: scale(1.02);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: var(--shadow-lg);
         }
 
         .programme-item.drag-over {
-            border-top: 3px solid #3498db;
+            border-top: 3px solid var(--primary);
         }
 
         .item-order {
             font-size: 0.85rem;
-            color: #888;
-            min-width: 24px;
+            font-weight: 600;
+            color: var(--text-muted);
+            min-width: 28px;
         }
 
         .item-content {
@@ -312,44 +464,64 @@
 
         .item-title {
             font-weight: 500;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.2rem;
+            color: var(--text-primary);
         }
 
         .item-meta {
             font-size: 0.8rem;
-            color: #666;
+            color: var(--text-secondary);
         }
 
         .item-duration {
-            font-family: 'Monaco', 'Consolas', monospace;
-            font-size: 0.95rem;
-            color: #2c3e50;
-            min-width: 60px;
-            text-align: right;
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            background: rgba(124, 156, 191, 0.1);
+            padding: 0.35rem 0.75rem;
+            border-radius: var(--radius-xl);
+            min-width: 70px;
+            text-align: center;
         }
 
         .item-actions {
             display: flex;
             gap: 0.25rem;
+            opacity: 0;
+            transition: opacity 0.2s ease;
         }
 
-        .item-actions button {
-            padding: 0.35rem 0.6rem;
-            font-size: 0.8rem;
+        .programme-item:hover .item-actions {
+            opacity: 1;
         }
 
         .empty-state {
             text-align: center;
-            padding: 3rem;
-            color: #888;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 1rem;
+            opacity: 0.4;
         }
 
         .empty-state p {
             margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .empty-state p:first-of-type {
+            font-weight: 500;
+            color: var(--text-secondary);
         }
 
         .item-type-other {
-            border-left-color: #95a5a6 !important;
+            border-left-color: var(--text-muted) !important;
+            background: rgba(0,0,0,0.02);
         }
 
         /* Modal styles */
@@ -360,10 +532,17 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(74, 74, 74, 0.4);
+            backdrop-filter: blur(4px);
             z-index: 200;
             align-items: center;
             justify-content: center;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .modal-overlay.active {
@@ -371,32 +550,55 @@
         }
 
         .modal {
-            background: white;
-            border-radius: 10px;
-            padding: 1.5rem;
-            max-width: 500px;
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            max-width: 480px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
 
         .modal h3 {
-            margin-bottom: 1rem;
-            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .modal > p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
         }
 
         .modal-actions {
             display: flex;
-            gap: 0.5rem;
+            gap: 0.75rem;
             justify-content: flex-end;
-            margin-top: 1rem;
+            margin-top: 1.5rem;
         }
 
         .collab-modal .session-info {
-            background: #f8f9fa;
-            padding: 1rem;
-            border-radius: 6px;
-            margin: 1rem 0;
+            background: var(--surface-hover);
+            padding: 1.25rem;
+            border-radius: var(--radius-md);
+            margin: 1.25rem 0;
+        }
+
+        .collab-modal .session-info label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
         }
 
         .collab-modal .session-link {
@@ -407,51 +609,97 @@
 
         .collab-modal .session-link input {
             flex: 1;
+            font-size: 0.85rem;
         }
 
         .collaborators-list {
-            margin-top: 1rem;
+            margin-top: 1.25rem;
+        }
+
+        .collaborators-list > label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            color: var(--text-secondary);
         }
 
         .collaborator {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem;
-            background: #f8f9fa;
-            border-radius: 4px;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--surface-hover);
+            border-radius: var(--radius-sm);
             margin-bottom: 0.5rem;
         }
 
         .collaborator-dot {
-            width: 8px;
-            height: 8px;
-            background: #2ecc71;
+            width: 10px;
+            height: 10px;
+            background: var(--success);
             border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         .join-section {
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid #eee;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
         }
 
         .toast {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #2c3e50;
+            bottom: 24px;
+            right: 24px;
+            background: var(--text-primary);
             color: white;
             padding: 1rem 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
             z-index: 300;
             animation: slideIn 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
         }
 
         @keyframes slideIn {
             from { transform: translateY(100px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Empty performer list */
+        .performer-empty {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-align: center;
+            padding: 1.5rem 1rem;
+            background: var(--surface-hover);
+            border-radius: var(--radius-sm);
+            border: 2px dashed var(--border);
         }
     </style>
 </head>
@@ -460,7 +708,7 @@
         <h1>Concert Programma Planner</h1>
         <div class="header-right">
             <div class="total-duration">
-                Totaal: <span id="totalDuration">00:00</span>
+                Totaal: <span id="totalDuration">0:00</span>
             </div>
             <div class="collab-section">
                 <span class="collab-status" id="collabStatus"></span>
@@ -493,7 +741,8 @@
                 </div>
                 <div class="form-group">
                     <label for="performerColor">Kleur</label>
-                    <input type="color" id="performerColor" value="#3498db">
+                    <input type="color" id="performerColor" value="#B8D4E3">
+                    <div class="color-presets" id="colorPresets"></div>
                 </div>
                 <button class="btn-full" onclick="addPerformer()">Uitvoerende Toevoegen</button>
                 <div class="performer-list" id="performerList"></div>
@@ -543,8 +792,13 @@
             <h2>Programma</h2>
             <div class="programme-list" id="programmeList">
                 <div class="empty-state">
-                    <p>Er zijn nog geen items in het programma.</p>
-                    <p>Voeg uitvoerenden en programma-items toe via de panelen links.</p>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M9 19V6l12-3v13"></path>
+                        <circle cx="6" cy="18" r="3"></circle>
+                        <circle cx="18" cy="16" r="3"></circle>
+                    </svg>
+                    <p>Er zijn nog geen items in het programma</p>
+                    <p>Voeg uitvoerenden en programma-items toe via de panelen links</p>
                 </div>
             </div>
         </div>
@@ -573,7 +827,7 @@
                 <div class="form-group">
                     <label for="joinSessionId">Bestaande Sessie Deelnemen</label>
                     <div class="session-link">
-                        <input type="text" id="joinSessionId" placeholder="Voer sessie ID in">
+                        <input type="text" id="joinSessionId" placeholder="Voer sessie ID of link in">
                         <button onclick="joinSession()">Deelnemen</button>
                     </div>
                 </div>
@@ -620,7 +874,7 @@
             </div>
             <div class="modal-actions">
                 <button class="btn-secondary" onclick="closeEditModal()">Annuleren</button>
-                <button onclick="saveItemEdit()">Wijzigingen Opslaan</button>
+                <button onclick="saveItemEdit()">Opslaan</button>
             </div>
         </div>
     </div>
@@ -640,12 +894,26 @@
             </div>
             <div class="modal-actions">
                 <button class="btn-secondary" onclick="closeEditPerformerModal()">Annuleren</button>
-                <button onclick="savePerformerEdit()">Wijzigingen Opslaan</button>
+                <button onclick="savePerformerEdit()">Opslaan</button>
             </div>
         </div>
     </div>
 
     <script>
+        // Beautiful pastel colors for performers
+        const PERFORMER_COLORS = [
+            '#B8D4E3',  // Soft sky blue
+            '#E8C5D0',  // Dusty rose
+            '#C5E0D0',  // Sage green
+            '#E8D5B8',  // Warm sand
+            '#D0C5E8',  // Lavender
+            '#E8E0C5',  // Soft yellow
+            '#C5D8E8',  // Powder blue
+            '#E8C5C5',  // Blush pink
+            '#C5E8D8',  // Mint
+            '#D8C5E8',  // Lilac
+        ];
+
         // Configuration - WebSocket URL based on environment
         const WS_URL = window.location.protocol === 'https:'
             ? 'wss://' + window.location.host
@@ -659,10 +927,33 @@
         let collaborators = new Map();
         let reconnectAttempts = 0;
         let myClientId = null;
+        let colorIndex = 0;
 
         // Generate unique ID
         function generateId() {
             return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        // Get next performer color
+        function getNextColor() {
+            const color = PERFORMER_COLORS[colorIndex % PERFORMER_COLORS.length];
+            colorIndex++;
+            return color;
+        }
+
+        // Initialize color presets
+        function initColorPresets() {
+            const container = document.getElementById('colorPresets');
+            container.innerHTML = PERFORMER_COLORS.map((color, i) =>
+                `<div class="color-preset" style="background: ${color}" onclick="selectColor('${color}')" data-color="${color}"></div>`
+            ).join('');
+        }
+
+        function selectColor(color) {
+            document.getElementById('performerColor').value = color;
+            document.querySelectorAll('.color-preset').forEach(el => {
+                el.classList.toggle('active', el.dataset.color === color);
+            });
         }
 
         // Toast notifications
@@ -691,6 +982,9 @@
                 sessionId = generateId();
                 localStorage.setItem('concertSessionId', sessionId);
             }
+
+            // Set color index based on existing performers
+            colorIndex = performers.length;
 
             updateSessionLink();
             renderPerformers();
@@ -722,7 +1016,7 @@
             });
 
             document.getElementById('performerName').value = '';
-            document.getElementById('performerColor').value = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            document.getElementById('performerColor').value = getNextColor();
 
             saveData();
             renderPerformers();
@@ -778,7 +1072,7 @@
             const list = document.getElementById('performerList');
 
             if (performers.length === 0) {
-                list.innerHTML = '<p style="color: #888; font-size: 0.85rem; text-align: center; padding: 1rem;">Nog geen uitvoerenden toegevoegd</p>';
+                list.innerHTML = '<div class="performer-empty">Nog geen uitvoerenden toegevoegd</div>';
                 return;
             }
 
@@ -787,8 +1081,18 @@
                     <div class="performer-color" style="background: ${p.color}"></div>
                     <span class="performer-name">${escapeHtml(p.name)}</span>
                     <div class="performer-actions">
-                        <button onclick="editPerformer('${p.id}')" title="Bewerken">✎</button>
-                        <button class="btn-danger" onclick="deletePerformer('${p.id}')" title="Verwijderen">×</button>
+                        <button class="btn-icon" onclick="editPerformer('${p.id}')" title="Bewerken">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                        <button class="btn-icon btn-danger" onclick="deletePerformer('${p.id}')" title="Verwijderen">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </button>
                     </div>
                 </div>
             `).join('');
@@ -927,8 +1231,13 @@
             if (programmeItems.length === 0) {
                 list.innerHTML = `
                     <div class="empty-state">
-                        <p>Er zijn nog geen items in het programma.</p>
-                        <p>Voeg uitvoerenden en programma-items toe via de panelen links.</p>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M9 19V6l12-3v13"></path>
+                            <circle cx="6" cy="18" r="3"></circle>
+                            <circle cx="18" cy="16" r="3"></circle>
+                        </svg>
+                        <p>Er zijn nog geen items in het programma</p>
+                        <p>Voeg uitvoerenden en programma-items toe via de panelen links</p>
                     </div>
                 `;
                 return;
@@ -936,7 +1245,7 @@
 
             list.innerHTML = programmeItems.map((item, index) => {
                 const performer = performers.find(p => p.id === item.performerId);
-                const color = performer ? performer.color : (item.color || '#95a5a6');
+                const color = performer ? performer.color : (item.color || '#A0A0A0');
                 const isOther = item.type !== 'performance';
 
                 return `
@@ -953,13 +1262,23 @@
                             <div class="item-title">${escapeHtml(item.title)}</div>
                             <div class="item-meta">
                                 ${getTypeLabel(item.type)}
-                                ${performer ? ` • ${escapeHtml(performer.name)}` : ''}
+                                ${performer ? ` · ${escapeHtml(performer.name)}` : ''}
                             </div>
                         </div>
                         <span class="item-duration">${formatDuration(item.durationMinutes, item.durationSeconds)}</span>
                         <div class="item-actions">
-                            <button onclick="editItem('${item.id}')" title="Bewerken">✎</button>
-                            <button class="btn-danger" onclick="deleteItem('${item.id}')" title="Verwijderen">×</button>
+                            <button class="btn-icon" onclick="editItem('${item.id}')" title="Bewerken">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                            </button>
+                            <button class="btn-icon btn-danger" onclick="deleteItem('${item.id}')" title="Verwijderen">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 `;
@@ -1239,6 +1558,8 @@
         loadData();
         togglePerformerSelect();
         updatePerformerSelects();
+        initColorPresets();
+        document.getElementById('performerColor').value = getNextColor();
         connectWebSocket();
     </script>
 </body>
