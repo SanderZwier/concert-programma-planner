@@ -1,0 +1,12 @@
+# Render.com deployment configuration
+# Deploy at: https://render.com
+
+services:
+  - type: web
+    name: concert-programma-planner
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
