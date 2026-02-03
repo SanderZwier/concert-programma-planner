@@ -1,44 +1,54 @@
-const { createClient } = require('@libsql/client');
+const mysql = require('mysql2/promise');
 
-let db = null;
+let pool = null;
 
 /**
  * Initialize the database connection.
- * Uses Turso (cloud SQLite) if TURSO_DATABASE_URL is set,
+ * Uses MySQL if MYSQL_HOST is set,
  * otherwise falls back to in-memory storage.
  */
 async function initDatabase() {
-    const url = process.env.TURSO_DATABASE_URL;
-    const authToken = process.env.TURSO_AUTH_TOKEN;
+    const host = process.env.MYSQL_HOST;
+    const user = process.env.MYSQL_USER;
+    const password = process.env.MYSQL_PASSWORD;
+    const database = process.env.MYSQL_DATABASE;
 
-    if (!url) {
-        console.log('No TURSO_DATABASE_URL set - using in-memory storage (data will not persist across restarts)');
+    if (!host) {
+        console.log('No MYSQL_HOST set - using in-memory storage (data will not persist across restarts)');
         return false;
     }
 
     try {
-        db = createClient({
-            url: url,
-            authToken: authToken
+        pool = mysql.createPool({
+            host: host,
+            user: user,
+            password: password,
+            database: database,
+            waitForConnections: true,
+            connectionLimit: 5,
+            queueLimit: 0
         });
 
+        // Test the connection
+        await pool.query('SELECT 1');
+
         // Create the sessions table if it doesn't exist
-        await db.execute(`
+        await pool.query(`
             CREATE TABLE IF NOT EXISTS sessions (
-                session_id TEXT PRIMARY KEY,
+                session_id VARCHAR(255) PRIMARY KEY,
                 performers TEXT,
                 programme_items TEXT,
                 concert_info TEXT,
-                updated_at INTEGER
+                updated_at BIGINT
             )
         `);
 
-        console.log('Connected to Turso database - data will persist across restarts');
+        console.log('Connected to MySQL database - data will persist across restarts');
         return true;
     } catch (error) {
-        console.error('Failed to connect to Turso database:', error.message);
+        console.error('Failed to connect to MySQL database:', error.message);
         console.log('Falling back to in-memory storage');
-        db = null;
+        pool = null;
         return false;
     }
 }
@@ -47,20 +57,25 @@ async function initDatabase() {
  * Save session state to the database.
  */
 async function saveSession(sessionId, performers, programmeItems, concertInfo) {
-    if (!db) return false;
+    if (!pool) return false;
 
     try {
-        await db.execute({
-            sql: `INSERT OR REPLACE INTO sessions (session_id, performers, programme_items, concert_info, updated_at)
-                  VALUES (?, ?, ?, ?, ?)`,
-            args: [
+        await pool.query(
+            `INSERT INTO sessions (session_id, performers, programme_items, concert_info, updated_at)
+             VALUES (?, ?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE
+                performers = VALUES(performers),
+                programme_items = VALUES(programme_items),
+                concert_info = VALUES(concert_info),
+                updated_at = VALUES(updated_at)`,
+            [
                 sessionId,
                 JSON.stringify(performers || []),
                 JSON.stringify(programmeItems || []),
                 JSON.stringify(concertInfo || {}),
                 Date.now()
             ]
-        });
+        );
         return true;
     } catch (error) {
         console.error('Failed to save session:', error.message);
@@ -72,19 +87,19 @@ async function saveSession(sessionId, performers, programmeItems, concertInfo) {
  * Load session state from the database.
  */
 async function loadSession(sessionId) {
-    if (!db) return null;
+    if (!pool) return null;
 
     try {
-        const result = await db.execute({
-            sql: 'SELECT performers, programme_items, concert_info FROM sessions WHERE session_id = ?',
-            args: [sessionId]
-        });
+        const [rows] = await pool.query(
+            'SELECT performers, programme_items, concert_info FROM sessions WHERE session_id = ?',
+            [sessionId]
+        );
 
-        if (result.rows.length === 0) {
+        if (rows.length === 0) {
             return null;
         }
 
-        const row = result.rows[0];
+        const row = rows[0];
         return {
             performers: JSON.parse(row.performers || '[]'),
             programmeItems: JSON.parse(row.programme_items || '[]'),
@@ -100,13 +115,13 @@ async function loadSession(sessionId) {
  * Delete a session from the database.
  */
 async function deleteSession(sessionId) {
-    if (!db) return false;
+    if (!pool) return false;
 
     try {
-        await db.execute({
-            sql: 'DELETE FROM sessions WHERE session_id = ?',
-            args: [sessionId]
-        });
+        await pool.query(
+            'DELETE FROM sessions WHERE session_id = ?',
+            [sessionId]
+        );
         return true;
     } catch (error) {
         console.error('Failed to delete session:', error.message);
@@ -118,7 +133,7 @@ async function deleteSession(sessionId) {
  * Check if database is connected.
  */
 function isConnected() {
-    return db !== null;
+    return pool !== null;
 }
 
 module.exports = {
