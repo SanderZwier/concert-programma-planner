@@ -1431,10 +1431,8 @@
             '#D8C5E8',  // Lilac
         ];
 
-        // Configuration - WebSocket URL based on environment
-        const WS_URL = window.location.protocol === 'https:'
-            ? 'wss://' + window.location.host
-            : 'ws://' + window.location.host;
+        // Configuration - API URL
+        const API_URL = 'api.php';
 
         // Data
         let performers = [];
@@ -1444,10 +1442,9 @@
             date: ''
         };
         let sessionId = null;
-        let ws = null;
-        let collaborators = new Map();
-        let reconnectAttempts = 0;
-        let myClientId = null;
+        let lastUpdatedAt = 0;
+        let pollInterval = null;
+        let isSaving = false;
         let colorIndex = 0;
 
         // Generate unique ID
@@ -1956,160 +1953,148 @@
             localStorage.setItem('concertSessionId', sessionId);
             updateSessionLink();
 
-            // Reconnect to new session
-            if (ws) {
-                ws.close();
-            }
-            connectWebSocket();
+            // Load state from server for the new session
+            loadFromServer();
 
             showToast('Verbonden met sessie');
             closeCollabModal();
         }
 
-        function connectWebSocket() {
+        // Load state from server
+        async function loadFromServer() {
             const statusEl = document.getElementById('collabStatus');
 
             try {
-                ws = new WebSocket(WS_URL);
+                const response = await fetch(`${API_URL}?action=load&session=${sessionId}`);
+                const data = await response.json();
 
-                ws.onopen = () => {
-                    console.log('WebSocket verbonden');
+                if (data.success) {
+                    if (data.performers && data.performers.length > 0) {
+                        performers = data.performers;
+                    }
+                    if (data.programmeItems && data.programmeItems.length > 0) {
+                        programmeItems = data.programmeItems;
+                    }
+                    if (data.concertInfo && Object.keys(data.concertInfo).length > 0) {
+                        concertInfo = data.concertInfo;
+                        document.getElementById('concertTitle').value = concertInfo.title || '';
+                        document.getElementById('concertDate').value = concertInfo.date || '';
+                        updateHeaderInfo();
+                    }
+                    lastUpdatedAt = data.updatedAt || 0;
+
+                    localStorage.setItem('concertPerformers', JSON.stringify(performers));
+                    localStorage.setItem('concertProgramme', JSON.stringify(programmeItems));
+                    localStorage.setItem('concertInfo', JSON.stringify(concertInfo));
+
+                    renderPerformers();
+                    renderProgramme();
+                    updateTotalDuration();
+                    updatePerformerSelects();
+
                     statusEl.textContent = 'Verbonden';
                     statusEl.className = 'collab-status connected';
-                    reconnectAttempts = 0;
-
-                    // Join session
-                    ws.send(JSON.stringify({
-                        type: 'join',
-                        sessionId: sessionId
-                    }));
-                };
-
-                ws.onmessage = (event) => {
-                    const data = JSON.parse(event.data);
-
-                    switch (data.type) {
-                        case 'welcome':
-                            myClientId = data.clientId;
-                            break;
-
-                        case 'state':
-                            // Received full state from another client
-                            if (data.performers) performers = data.performers;
-                            if (data.programmeItems) programmeItems = data.programmeItems;
-                            if (data.concertInfo) {
-                                concertInfo = data.concertInfo;
-                                document.getElementById('concertTitle').value = concertInfo.title || '';
-                                document.getElementById('concertDate').value = concertInfo.date || '';
-                                updateHeaderInfo();
-                                localStorage.setItem('concertInfo', JSON.stringify(concertInfo));
-                            }
-                            localStorage.setItem('concertPerformers', JSON.stringify(performers));
-                            localStorage.setItem('concertProgramme', JSON.stringify(programmeItems));
-                            renderPerformers();
-                            renderProgramme();
-                            updateTotalDuration();
-                            updatePerformerSelects();
-                            break;
-
-                        case 'update':
-                            // Received update from another client
-                            if (data.clientId !== myClientId) {
-                                performers = data.performers;
-                                programmeItems = data.programmeItems;
-                                if (data.concertInfo) {
-                                    concertInfo = data.concertInfo;
-                                    document.getElementById('concertTitle').value = concertInfo.title || '';
-                                    document.getElementById('concertDate').value = concertInfo.date || '';
-                                    updateHeaderInfo();
-                                    localStorage.setItem('concertInfo', JSON.stringify(concertInfo));
-                                }
-                                localStorage.setItem('concertPerformers', JSON.stringify(performers));
-                                localStorage.setItem('concertProgramme', JSON.stringify(programmeItems));
-                                renderPerformers();
-                                renderProgramme();
-                                updateTotalDuration();
-                                updatePerformerSelects();
-                            }
-                            break;
-
-                        case 'clients':
-                            collaborators = new Map(Object.entries(data.clients || {}));
-                            updateCollaboratorsList();
-                            break;
-
-                        case 'requestState':
-                            // Another client is requesting the current state
-                            ws.send(JSON.stringify({
-                                type: 'state',
-                                sessionId: sessionId,
-                                performers: performers,
-                                programmeItems: programmeItems,
-                                concertInfo: concertInfo
-                            }));
-                            break;
-                    }
-                };
-
-                ws.onclose = () => {
-                    console.log('WebSocket gesloten');
-                    statusEl.textContent = 'Niet verbonden';
-                    statusEl.className = 'collab-status disconnected';
-
-                    // Attempt to reconnect
-                    if (reconnectAttempts < 5) {
-                        reconnectAttempts++;
-                        setTimeout(connectWebSocket, 2000 * reconnectAttempts);
-                    }
-                };
-
-                ws.onerror = (error) => {
-                    console.log('WebSocket fout, terugvallen op lokale modus');
-                    statusEl.textContent = 'Lokale modus';
-                    statusEl.className = 'collab-status';
-                };
-
+                }
             } catch (error) {
-                console.log('WebSocket niet beschikbaar, lokale modus actief');
+                console.log('Server niet bereikbaar, lokale modus actief');
                 statusEl.textContent = 'Lokale modus';
                 statusEl.className = 'collab-status';
             }
         }
 
-        function broadcastUpdate() {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'update',
-                    sessionId: sessionId,
-                    clientId: myClientId,
-                    performers: performers,
-                    programmeItems: programmeItems,
-                    concertInfo: concertInfo
-                }));
+        // Save state to server
+        async function saveToServer() {
+            if (isSaving) return;
+            isSaving = true;
+
+            try {
+                const response = await fetch(`${API_URL}?action=save&session=${sessionId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        performers: performers,
+                        programmeItems: programmeItems,
+                        concertInfo: concertInfo
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    lastUpdatedAt = data.updatedAt;
+                }
+            } catch (error) {
+                console.log('Kon niet opslaan naar server:', error);
+            } finally {
+                isSaving = false;
             }
+        }
+
+        // Poll for updates from other clients
+        async function pollForUpdates() {
+            try {
+                const response = await fetch(`${API_URL}?action=poll&session=${sessionId}&since=${lastUpdatedAt}`);
+                const data = await response.json();
+
+                if (data.hasUpdate) {
+                    performers = data.performers;
+                    programmeItems = data.programmeItems;
+                    if (data.concertInfo) {
+                        concertInfo = data.concertInfo;
+                        document.getElementById('concertTitle').value = concertInfo.title || '';
+                        document.getElementById('concertDate').value = concertInfo.date || '';
+                        updateHeaderInfo();
+                    }
+                    lastUpdatedAt = data.updatedAt;
+
+                    localStorage.setItem('concertPerformers', JSON.stringify(performers));
+                    localStorage.setItem('concertProgramme', JSON.stringify(programmeItems));
+                    localStorage.setItem('concertInfo', JSON.stringify(concertInfo));
+
+                    renderPerformers();
+                    renderProgramme();
+                    updateTotalDuration();
+                    updatePerformerSelects();
+                }
+            } catch (error) {
+                // Silently fail - server might be temporarily unavailable
+            }
+        }
+
+        // Start polling for updates
+        function startPolling() {
+            const statusEl = document.getElementById('collabStatus');
+
+            // Initial load from server
+            loadFromServer();
+
+            // Poll every 3 seconds for updates
+            if (pollInterval) {
+                clearInterval(pollInterval);
+            }
+            pollInterval = setInterval(pollForUpdates, 3000);
+
+            statusEl.textContent = 'Verbonden';
+            statusEl.className = 'collab-status connected';
+        }
+
+        function broadcastUpdate() {
+            // Save to server (async)
+            saveToServer();
         }
 
         function updateCollaboratorsList() {
             const container = document.getElementById('collaboratorsContainer');
-            let html = `
+            container.innerHTML = `
                 <div class="collaborator">
                     <span class="collaborator-dot"></span>
                     <span>Jij</span>
                 </div>
+                <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem;">
+                    Wijzigingen worden automatisch gesynchroniseerd
+                </p>
             `;
-
-            collaborators.forEach((info, clientId) => {
-                if (clientId !== myClientId) {
-                    html += `
-                        <div class="collaborator">
-                            <span class="collaborator-dot"></span>
-                            <span>Medewerker ${clientId.substring(0, 6)}</span>
-                        </div>
-                    `;
-                }
-            });
-
-            container.innerHTML = html;
         }
 
         // Export functions
@@ -2304,7 +2289,7 @@
         updatePerformerSelects();
         initColorPresets();
         document.getElementById('performerColor').value = getNextColor();
-        connectWebSocket();
+        startPolling();
     </script>
 </body>
 </html>
