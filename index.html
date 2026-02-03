@@ -1239,12 +1239,9 @@
                 <div class="form-group">
                     <label for="itemType">Type</label>
                     <select id="itemType" onchange="togglePerformerSelect()">
-                        <option value="performance">Uitvoering</option>
-                        <option value="intermission">Pauze</option>
-                        <option value="talk">Toespraak</option>
-                        <option value="opening">Openingswoord</option>
-                        <option value="closing">Slotwoord</option>
-                        <option value="other">Overig</option>
+                        <option value="muziek">Muziek</option>
+                        <option value="samenzang">Samenzang</option>
+                        <option value="tekst">Tekst</option>
                     </select>
                 </div>
                 <div class="form-group" id="performerSelectGroup">
@@ -1327,12 +1324,9 @@
             <div class="form-group">
                 <label for="editItemType">Type</label>
                 <select id="editItemType" onchange="toggleEditPerformerSelect()">
-                    <option value="performance">Uitvoering</option>
-                    <option value="intermission">Pauze</option>
-                    <option value="talk">Toespraak</option>
-                    <option value="opening">Openingswoord</option>
-                    <option value="closing">Slotwoord</option>
-                    <option value="other">Overig</option>
+                    <option value="muziek">Muziek</option>
+                    <option value="samenzang">Samenzang</option>
+                    <option value="tekst">Tekst</option>
                 </select>
             </div>
             <div class="form-group" id="editPerformerSelectGroup">
@@ -1670,13 +1664,13 @@
         function togglePerformerSelect() {
             const type = document.getElementById('itemType').value;
             const group = document.getElementById('performerSelectGroup');
-            group.style.display = type === 'performance' ? 'block' : 'none';
+            group.style.display = (type === 'muziek' || type === 'samenzang') ? 'block' : 'none';
         }
 
         function toggleEditPerformerSelect() {
             const type = document.getElementById('editItemType').value;
             const group = document.getElementById('editPerformerSelectGroup');
-            group.style.display = type === 'performance' ? 'block' : 'none';
+            group.style.display = (type === 'muziek' || type === 'samenzang') ? 'block' : 'none';
         }
 
         function addItem() {
@@ -1691,7 +1685,7 @@
                 return;
             }
 
-            if (type === 'performance' && !performerId) {
+            if ((type === 'muziek' || type === 'samenzang') && !performerId) {
                 showToast('Selecteer een uitvoerende');
                 return;
             }
@@ -1701,7 +1695,7 @@
             programmeItems.push({
                 id: generateId(),
                 type: type,
-                performerId: type === 'performance' ? performerId : null,
+                performerId: (type === 'muziek' || type === 'samenzang') ? performerId : null,
                 color: performer ? performer.color : null,
                 title: title,
                 durationMinutes: minutes,
@@ -1742,7 +1736,7 @@
             const performer = performers.find(p => p.id === performerId);
 
             item.type = type;
-            item.performerId = type === 'performance' ? performerId : null;
+            item.performerId = (type === 'muziek' || type === 'samenzang') ? performerId : null;
             item.color = performer ? performer.color : null;
             item.title = document.getElementById('editItemTitle').value.trim();
             item.durationMinutes = parseInt(document.getElementById('editItemMinutes').value) || 0;
@@ -1768,12 +1762,9 @@
 
         function getTypeLabel(type) {
             const labels = {
-                performance: 'Uitvoering',
-                intermission: 'Pauze',
-                talk: 'Toespraak',
-                opening: 'Openingswoord',
-                closing: 'Slotwoord',
-                other: 'Overig'
+                muziek: 'Muziek',
+                samenzang: 'Samenzang',
+                tekst: 'Tekst'
             };
             return labels[type] || type;
         }
@@ -1803,7 +1794,7 @@
             list.innerHTML = programmeItems.map((item, index) => {
                 const performer = performers.find(p => p.id === item.performerId);
                 const color = performer ? performer.color : (item.color || '#A0A0A0');
-                const isOther = item.type !== 'performance';
+                const isOther = item.type === 'tekst';
 
                 return `
                     <div class="programme-item ${isOther ? 'item-type-other' : ''}"
