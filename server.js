@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const WebSocket = require('ws');
+const { initDatabase, saveSession, loadSession, isConnected } = require('./database');
 
 const PORT = process.env.PORT || 3000;
 
@@ -109,6 +110,28 @@ wss.on('connection', (ws) => {
                             clients: new Map(),
                             state: null
                         });
+
+                        // Try to load persisted state from database
+                        if (isConnected()) {
+                            loadSession(currentSessionId).then(savedState => {
+                                if (savedState && sessions.has(currentSessionId)) {
+                                    sessions.get(currentSessionId).state = savedState;
+                                    console.log(`Loaded persisted state for session ${currentSessionId}`);
+
+                                    // Send persisted state to the client
+                                    if (ws.readyState === WebSocket.OPEN) {
+                                        ws.send(JSON.stringify({
+                                            type: 'state',
+                                            performers: savedState.performers,
+                                            programmeItems: savedState.programmeItems,
+                                            concertInfo: savedState.concertInfo
+                                        }));
+                                    }
+                                }
+                            }).catch(err => {
+                                console.error('Error loading session state:', err);
+                            });
+                        }
                     }
 
                     sessions.get(currentSessionId).clients.set(clientId, ws);
@@ -137,12 +160,33 @@ wss.on('connection', (ws) => {
                                 break;
                             }
                         }
+                    } else if (session.state) {
+                        // If this is the first client and we have persisted state, send it
+                        ws.send(JSON.stringify({
+                            type: 'state',
+                            performers: session.state.performers,
+                            programmeItems: session.state.programmeItems,
+                            concertInfo: session.state.concertInfo
+                        }));
                     }
                     break;
 
                 case 'update':
                     // Broadcast update to all other clients in the session
                     if (currentSessionId && sessions.has(currentSessionId)) {
+                        // Store state in memory
+                        sessions.get(currentSessionId).state = {
+                            performers: data.performers,
+                            programmeItems: data.programmeItems,
+                            concertInfo: data.concertInfo
+                        };
+
+                        // Persist to database
+                        if (isConnected()) {
+                            saveSession(currentSessionId, data.performers, data.programmeItems, data.concertInfo)
+                                .catch(err => console.error('Error saving session:', err));
+                        }
+
                         broadcastToSession(currentSessionId, {
                             type: 'update',
                             clientId: clientId,
@@ -156,6 +200,19 @@ wss.on('connection', (ws) => {
                 case 'state':
                     // Forward state to all other clients in the session
                     if (currentSessionId && sessions.has(currentSessionId)) {
+                        // Store state in memory
+                        sessions.get(currentSessionId).state = {
+                            performers: data.performers,
+                            programmeItems: data.programmeItems,
+                            concertInfo: data.concertInfo
+                        };
+
+                        // Persist to database
+                        if (isConnected()) {
+                            saveSession(currentSessionId, data.performers, data.programmeItems, data.concertInfo)
+                                .catch(err => console.error('Error saving session:', err));
+                        }
+
                         broadcastToSession(currentSessionId, {
                             type: 'state',
                             performers: data.performers,
@@ -212,7 +269,17 @@ function broadcastToSession(sessionId, message, excludeClientId = null) {
     }
 }
 
-server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Open http://localhost:${PORT} in your browser`);
+// Initialize database and start server
+initDatabase().then(() => {
+    server.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+        console.log(`Open http://localhost:${PORT} in your browser`);
+    });
+}).catch(err => {
+    console.error('Failed to initialize database:', err);
+    // Start server anyway, will use in-memory storage
+    server.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+        console.log(`Open http://localhost:${PORT} in your browser`);
+    });
 });
