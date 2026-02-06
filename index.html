@@ -851,6 +851,117 @@
             background: rgba(0,0,0,0.02);
         }
 
+        /* Concert Selector */
+        .concert-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .concert-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--surface-hover);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+
+        .concert-item:hover {
+            background: var(--border);
+        }
+
+        .concert-item.active {
+            border-color: var(--primary);
+            background: rgba(124, 156, 191, 0.1);
+        }
+
+        .concert-item-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--primary-light);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-dark);
+            flex-shrink: 0;
+        }
+
+        .concert-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .concert-item-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .concert-item-date {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .concert-item-actions {
+            display: flex;
+            gap: 0.25rem;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .concert-item:hover .concert-item-actions {
+            opacity: 1;
+        }
+
+        .new-concert-form {
+            display: none;
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            background: var(--surface-hover);
+            border-radius: var(--radius-sm);
+            border: 2px dashed var(--border);
+        }
+
+        .new-concert-form.active {
+            display: block;
+        }
+
+        .new-concert-form input {
+            margin-bottom: 0.5rem;
+        }
+
+        .new-concert-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .new-concert-actions button {
+            flex: 1;
+            padding: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .concert-empty {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-align: center;
+            padding: 1.5rem 1rem;
+            background: var(--surface-hover);
+            border-radius: var(--radius-sm);
+            border: 2px dashed var(--border);
+        }
+
         /* Inline Add Form */
         .inline-add-form {
             margin-top: 1rem;
@@ -1308,6 +1419,37 @@
 
     <div class="container">
         <div class="sidebar">
+            <!-- Concert Selector -->
+            <div class="panel">
+                <h2>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    Concerten
+                </h2>
+                <button class="btn-full" onclick="showNewConcertForm()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 0.25rem;">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Nieuw Concert
+                </button>
+                <div class="new-concert-form" id="newConcertForm">
+                    <input type="text" id="newConcertTitle" placeholder="Naam van het concert">
+                    <input type="date" id="newConcertDate">
+                    <div class="new-concert-actions">
+                        <button class="btn-secondary" onclick="hideNewConcertForm()">Annuleren</button>
+                        <button onclick="createNewConcert()">Aanmaken</button>
+                    </div>
+                </div>
+                <div class="concert-list" id="concertList">
+                    <div class="concert-empty">Nog geen concerten</div>
+                </div>
+            </div>
+
             <div class="panel">
                 <h2>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1544,11 +1686,165 @@
             title: '',
             date: ''
         };
-        let sessionId = null;
+        let currentConcertSlug = null;
+        let concerts = [];
         let lastUpdatedAt = 0;
         let pollInterval = null;
         let isSaving = false;
         let colorIndex = 0;
+
+        // Get concert slug from URL path
+        function getConcertSlugFromUrl() {
+            const path = window.location.pathname;
+            const parts = path.split('/').filter(p => p);
+            // Look for the slug after 'concert-programma-planner'
+            const idx = parts.indexOf('concert-programma-planner');
+            if (idx !== -1 && parts[idx + 1]) {
+                return parts[idx + 1];
+            }
+            // Or just take the last part if it's not index.html or empty
+            const last = parts[parts.length - 1];
+            if (last && last !== 'index.html' && last !== 'concert-programma-planner') {
+                return last;
+            }
+            return null;
+        }
+
+        // Navigate to a concert
+        function navigateToConcert(slug) {
+            const basePath = window.location.pathname.split('concert-programma-planner')[0] + 'concert-programma-planner/';
+            window.location.href = basePath + slug;
+        }
+
+        // Concert list functions
+        async function loadConcertList() {
+            try {
+                const response = await fetch(`${API_URL}?action=list`);
+                const data = await response.json();
+                if (data.success) {
+                    concerts = data.concerts;
+                    renderConcertList();
+                }
+            } catch (error) {
+                console.log('Could not load concert list:', error);
+            }
+        }
+
+        function renderConcertList() {
+            const container = document.getElementById('concertList');
+
+            if (concerts.length === 0) {
+                container.innerHTML = '<div class="concert-empty">Nog geen concerten</div>';
+                return;
+            }
+
+            container.innerHTML = concerts.map(c => {
+                const isActive = c.slug === currentConcertSlug;
+                const dateStr = c.date ? new Date(c.date).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+                return `
+                    <div class="concert-item ${isActive ? 'active' : ''}" onclick="navigateToConcert('${c.slug}')">
+                        <div class="concert-item-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 19V6l12-3v13"></path>
+                                <circle cx="6" cy="18" r="3"></circle>
+                                <circle cx="18" cy="16" r="3"></circle>
+                            </svg>
+                        </div>
+                        <div class="concert-item-info">
+                            <div class="concert-item-title">${escapeHtml(c.title)}</div>
+                            ${dateStr ? `<div class="concert-item-date">${dateStr}</div>` : ''}
+                        </div>
+                        <div class="concert-item-actions">
+                            <button class="btn-icon btn-danger" onclick="event.stopPropagation(); deleteConcert('${c.slug}')" title="Verwijderen">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showNewConcertForm() {
+            document.getElementById('newConcertForm').classList.add('active');
+            document.getElementById('newConcertTitle').focus();
+        }
+
+        function hideNewConcertForm() {
+            document.getElementById('newConcertForm').classList.remove('active');
+            document.getElementById('newConcertTitle').value = '';
+            document.getElementById('newConcertDate').value = '';
+        }
+
+        async function createNewConcert() {
+            const title = document.getElementById('newConcertTitle').value.trim();
+            const date = document.getElementById('newConcertDate').value;
+
+            if (!title) {
+                showToast('Voer een naam in');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}?action=create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, date })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    hideNewConcertForm();
+                    navigateToConcert(data.slug);
+                } else {
+                    showToast('Kon concert niet aanmaken');
+                }
+            } catch (error) {
+                showToast('Fout bij aanmaken concert');
+            }
+        }
+
+        async function deleteConcert(slug) {
+            if (!confirm('Dit concert verwijderen?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}?action=delete&concert=${slug}`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    await loadConcertList();
+                    if (slug === currentConcertSlug) {
+                        // Navigate to first available concert or show empty state
+                        if (concerts.length > 0) {
+                            navigateToConcert(concerts[0].slug);
+                        } else {
+                            currentConcertSlug = null;
+                            clearConcertData();
+                        }
+                    }
+                    showToast('Concert verwijderd');
+                }
+            } catch (error) {
+                showToast('Fout bij verwijderen');
+            }
+        }
+
+        function clearConcertData() {
+            performers = [];
+            programmeItems = [];
+            concertInfo = { title: '', date: '' };
+            document.getElementById('concertTitle').value = '';
+            document.getElementById('concertDate').value = '';
+            updateHeaderInfo();
+            renderPerformers();
+            renderProgramme();
+            updateTotalDuration();
+            updatePerformerSelects();
+        }
 
         // Generate unique ID
         function generateId() {
@@ -1589,28 +1885,8 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
-        // Load from localStorage
+        // Load data - now primarily from server based on URL
         function loadData() {
-            const savedPerformers = localStorage.getItem('concertPerformers');
-            const savedItems = localStorage.getItem('concertProgramme');
-            const savedSessionId = localStorage.getItem('concertSessionId');
-            const savedConcertInfo = localStorage.getItem('concertInfo');
-
-            if (savedPerformers) performers = JSON.parse(savedPerformers);
-            if (savedItems) programmeItems = JSON.parse(savedItems);
-            if (savedConcertInfo) {
-                concertInfo = JSON.parse(savedConcertInfo);
-                document.getElementById('concertTitle').value = concertInfo.title || '';
-                document.getElementById('concertDate').value = concertInfo.date || '';
-                updateHeaderInfo();
-            }
-            if (savedSessionId) {
-                sessionId = savedSessionId;
-            } else {
-                sessionId = generateId();
-                localStorage.setItem('concertSessionId', sessionId);
-            }
-
             // Set color index based on existing performers
             colorIndex = performers.length;
 
@@ -1620,12 +1896,11 @@
             updateTotalDuration();
         }
 
-        // Save to localStorage
+        // Save data - save to server
         function saveData() {
-            localStorage.setItem('concertPerformers', JSON.stringify(performers));
-            localStorage.setItem('concertProgramme', JSON.stringify(programmeItems));
-            localStorage.setItem('concertInfo', JSON.stringify(concertInfo));
-            broadcastUpdate();
+            if (currentConcertSlug) {
+                broadcastUpdate();
+            }
         }
 
         // Concert info functions
@@ -2010,9 +2285,13 @@
 
         // Collaboration functions
         function updateSessionLink() {
-            const baseUrl = window.location.origin + window.location.pathname;
-            const link = `${baseUrl}?session=${sessionId}`;
-            document.getElementById('sessionLink').value = link;
+            if (currentConcertSlug) {
+                const basePath = window.location.pathname.split('concert-programma-planner')[0] + 'concert-programma-planner/';
+                const link = window.location.origin + basePath + currentConcertSlug;
+                document.getElementById('sessionLink').value = link;
+            } else {
+                document.getElementById('sessionLink').value = window.location.href;
+            }
         }
 
         function openCollabModal() {
@@ -2036,57 +2315,52 @@
         }
 
         function joinSession() {
-            const joinId = document.getElementById('joinSessionId').value.trim();
-            if (!joinId) {
-                showToast('Voer een sessie ID in');
+            const joinInput = document.getElementById('joinSessionId').value.trim();
+            if (!joinInput) {
+                showToast('Voer een concert URL of naam in');
                 return;
             }
 
-            // Extract session ID from URL if full URL was pasted
-            let newSessionId = joinId;
-            if (joinId.includes('session=')) {
-                const url = new URL(joinId);
-                newSessionId = url.searchParams.get('session');
+            // Extract concert slug from URL if full URL was pasted
+            let slug = joinInput;
+            if (joinInput.includes('/')) {
+                // Try to extract slug from URL path
+                const parts = joinInput.split('/').filter(p => p);
+                const idx = parts.indexOf('concert-programma-planner');
+                if (idx !== -1 && parts[idx + 1]) {
+                    slug = parts[idx + 1];
+                } else {
+                    slug = parts[parts.length - 1];
+                }
             }
 
-            sessionId = newSessionId;
-            localStorage.setItem('concertSessionId', sessionId);
-            updateSessionLink();
-
-            // Load state from server for the new session
-            loadFromServer();
-
-            showToast('Verbonden met sessie');
-            closeCollabModal();
+            // Navigate to the concert
+            navigateToConcert(slug);
         }
 
-        // Load state from server
+        // Load concert from server
         async function loadFromServer() {
+            if (!currentConcertSlug) return;
+
             const statusEl = document.getElementById('collabStatus');
 
             try {
-                const response = await fetch(`${API_URL}?action=load&session=${sessionId}`);
+                const response = await fetch(`${API_URL}?action=load&concert=${currentConcertSlug}`);
                 const data = await response.json();
 
-                if (data.success) {
-                    if (data.performers && data.performers.length > 0) {
-                        performers = data.performers;
-                    }
-                    if (data.programmeItems && data.programmeItems.length > 0) {
-                        programmeItems = data.programmeItems;
-                    }
-                    if (data.concertInfo && Object.keys(data.concertInfo).length > 0) {
-                        concertInfo = data.concertInfo;
-                        document.getElementById('concertTitle').value = concertInfo.title || '';
-                        document.getElementById('concertDate').value = concertInfo.date || '';
-                        updateHeaderInfo();
-                    }
+                if (data.success && data.exists) {
+                    performers = data.performers || [];
+                    programmeItems = data.programmeItems || [];
+                    concertInfo = {
+                        title: data.title || '',
+                        date: data.date || ''
+                    };
+                    document.getElementById('concertTitle').value = concertInfo.title;
+                    document.getElementById('concertDate').value = concertInfo.date;
+                    updateHeaderInfo();
                     lastUpdatedAt = data.updatedAt || 0;
 
-                    localStorage.setItem('concertPerformers', JSON.stringify(performers));
-                    localStorage.setItem('concertProgramme', JSON.stringify(programmeItems));
-                    localStorage.setItem('concertInfo', JSON.stringify(concertInfo));
-
+                    colorIndex = performers.length;
                     renderPerformers();
                     renderProgramme();
                     updateTotalDuration();
@@ -2094,35 +2368,43 @@
 
                     statusEl.textContent = 'Verbonden';
                     statusEl.className = 'collab-status connected';
+                } else if (data.success && !data.exists) {
+                    // Concert doesn't exist yet
+                    clearConcertData();
+                    statusEl.textContent = 'Nieuw concert';
+                    statusEl.className = 'collab-status';
                 }
             } catch (error) {
-                console.log('Server niet bereikbaar, lokale modus actief');
-                statusEl.textContent = 'Lokale modus';
-                statusEl.className = 'collab-status';
+                console.log('Server niet bereikbaar:', error);
+                statusEl.textContent = 'Offline';
+                statusEl.className = 'collab-status disconnected';
             }
         }
 
-        // Save state to server
+        // Save concert to server
         async function saveToServer() {
-            if (isSaving) return;
+            if (isSaving || !currentConcertSlug) return;
             isSaving = true;
 
             try {
-                const response = await fetch(`${API_URL}?action=save&session=${sessionId}`, {
+                const response = await fetch(`${API_URL}?action=save&concert=${currentConcertSlug}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
+                        title: concertInfo.title,
+                        date: concertInfo.date,
                         performers: performers,
-                        programmeItems: programmeItems,
-                        concertInfo: concertInfo
+                        programmeItems: programmeItems
                     })
                 });
 
                 const data = await response.json();
                 if (data.success) {
                     lastUpdatedAt = data.updatedAt;
+                    // Refresh concert list to show updated title
+                    loadConcertList();
                 }
             } catch (error) {
                 console.log('Kon niet opslaan naar server:', error);
@@ -2133,24 +2415,23 @@
 
         // Poll for updates from other clients
         async function pollForUpdates() {
+            if (!currentConcertSlug) return;
+
             try {
-                const response = await fetch(`${API_URL}?action=poll&session=${sessionId}&since=${lastUpdatedAt}`);
+                const response = await fetch(`${API_URL}?action=poll&concert=${currentConcertSlug}&since=${lastUpdatedAt}`);
                 const data = await response.json();
 
                 if (data.hasUpdate) {
-                    performers = data.performers;
-                    programmeItems = data.programmeItems;
-                    if (data.concertInfo) {
-                        concertInfo = data.concertInfo;
-                        document.getElementById('concertTitle').value = concertInfo.title || '';
-                        document.getElementById('concertDate').value = concertInfo.date || '';
-                        updateHeaderInfo();
-                    }
+                    performers = data.performers || [];
+                    programmeItems = data.programmeItems || [];
+                    concertInfo = {
+                        title: data.title || '',
+                        date: data.date || ''
+                    };
+                    document.getElementById('concertTitle').value = concertInfo.title;
+                    document.getElementById('concertDate').value = concertInfo.date;
+                    updateHeaderInfo();
                     lastUpdatedAt = data.updatedAt;
-
-                    localStorage.setItem('concertPerformers', JSON.stringify(performers));
-                    localStorage.setItem('concertProgramme', JSON.stringify(programmeItems));
-                    localStorage.setItem('concertInfo', JSON.stringify(concertInfo));
 
                     renderPerformers();
                     renderProgramme();
@@ -2166,17 +2447,22 @@
         function startPolling() {
             const statusEl = document.getElementById('collabStatus');
 
-            // Initial load from server
-            loadFromServer();
+            // Load concert list
+            loadConcertList();
+
+            // Initial load from server if we have a concert slug
+            if (currentConcertSlug) {
+                loadFromServer();
+            } else {
+                statusEl.textContent = 'Geen concert geselecteerd';
+                statusEl.className = 'collab-status';
+            }
 
             // Poll every 3 seconds for updates
             if (pollInterval) {
                 clearInterval(pollInterval);
             }
             pollInterval = setInterval(pollForUpdates, 3000);
-
-            statusEl.textContent = 'Verbonden';
-            statusEl.className = 'collab-status connected';
         }
 
         function broadcastUpdate() {
@@ -2373,17 +2659,8 @@
         }
 
         // Check for session in URL
-        function checkUrlSession() {
-            const params = new URLSearchParams(window.location.search);
-            const urlSession = params.get('session');
-            if (urlSession) {
-                sessionId = urlSession;
-                localStorage.setItem('concertSessionId', sessionId);
-            }
-        }
-
         // Initialize
-        checkUrlSession();
+        currentConcertSlug = getConcertSlugFromUrl();
         loadData();
         togglePerformerSelect();
         updatePerformerSelects();

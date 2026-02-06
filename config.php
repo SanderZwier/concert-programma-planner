@@ -27,13 +27,15 @@ function getDatabase() {
                 PDO::ATTR_EMULATE_PREPARES => false
             ]);
 
-            // Create sessions table if it doesn't exist
+            // Create concerts table if it doesn't exist
             $pdo->exec("
-                CREATE TABLE IF NOT EXISTS sessions (
-                    session_id VARCHAR(255) PRIMARY KEY,
+                CREATE TABLE IF NOT EXISTS concerts (
+                    slug VARCHAR(255) PRIMARY KEY,
+                    title VARCHAR(255) NOT NULL,
+                    concert_date DATE,
                     performers TEXT,
                     programme_items TEXT,
-                    concert_info TEXT,
+                    created_at BIGINT,
                     updated_at BIGINT
                 )
             ");
