@@ -1,0 +1,9 @@
+RewriteEngine On
+RewriteBase /concert-programma-planner/
+
+# If the request is not for an existing file
+RewriteCond %{REQUEST_FILENAME} !-f
+# And not for an existing directory
+RewriteCond %{REQUEST_FILENAME} !-d
+# Rewrite to index.html
+RewriteRule ^(.*)$ index.html [L]
