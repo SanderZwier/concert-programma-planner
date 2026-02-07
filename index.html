@@ -330,13 +330,22 @@
 
             .programme-item {
                 padding: 0.75rem;
-                gap: 0.6rem;
-                flex-wrap: wrap;
+                gap: 0.5rem;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .item-top-row {
+                display: flex;
+                align-items: flex-start;
+                gap: 0.5rem;
+                width: 100%;
             }
 
             .item-order {
                 font-size: 0.8rem;
                 min-width: 24px;
+                padding-top: 0.1rem;
             }
 
             .item-content {
@@ -345,18 +354,27 @@
             }
 
             .item-title {
-                font-size: 0.9rem;
+                font-size: 0.95rem;
                 word-break: break-word;
+                line-height: 1.3;
             }
 
             .item-meta {
                 font-size: 0.75rem;
+                margin-top: 0.2rem;
+            }
+
+            .item-bottom-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding-left: 28px;
             }
 
             .item-duration {
                 font-size: 0.8rem;
-                padding: 0.3rem 0.6rem;
-                min-width: 60px;
+                padding: 0.25rem 0.6rem;
+                min-width: auto;
             }
 
             .item-actions {
@@ -782,6 +800,14 @@
             background: var(--surface);
             border-radius: var(--radius-md);
             transform: scale(1.05);
+        }
+
+        .item-top-row {
+            display: contents;
+        }
+
+        .item-bottom-row {
+            display: contents;
         }
 
         .item-order {
@@ -2195,28 +2221,32 @@
                          ondragend="dragEnd(event)"
                          ondragover="dragOver(event)"
                          ondrop="drop(event)">
-                        <span class="item-order">${index + 1}.</span>
-                        <div class="item-content">
-                            <div class="item-title">${escapeHtml(item.title)}</div>
-                            <div class="item-meta">
-                                ${getTypeLabel(item.type)}
-                                ${performer ? ` · ${escapeHtml(performer.name)}` : ''}
+                        <div class="item-top-row">
+                            <span class="item-order">${index + 1}.</span>
+                            <div class="item-content">
+                                <div class="item-title">${escapeHtml(item.title)}</div>
+                                <div class="item-meta">
+                                    ${getTypeLabel(item.type)}
+                                    ${performer ? ` · ${escapeHtml(performer.name)}` : ''}
+                                </div>
                             </div>
                         </div>
-                        <span class="item-duration">${formatDuration(item.durationMinutes, item.durationSeconds)}</span>
-                        <div class="item-actions">
-                            <button class="btn-icon" onclick="editItem('${item.id}')" title="Bewerken">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                </svg>
-                            </button>
-                            <button class="btn-icon btn-danger" onclick="deleteItem('${item.id}')" title="Verwijderen">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="3 6 5 6 21 6"></polyline>
-                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                </svg>
-                            </button>
+                        <div class="item-bottom-row">
+                            <span class="item-duration">${formatDuration(item.durationMinutes, item.durationSeconds)}</span>
+                            <div class="item-actions">
+                                <button class="btn-icon" onclick="editItem('${item.id}')" title="Bewerken">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                    </svg>
+                                </button>
+                                <button class="btn-icon btn-danger" onclick="deleteItem('${item.id}')" title="Verwijderen">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
